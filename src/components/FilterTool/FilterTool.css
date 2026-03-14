@@ -1,0 +1,71 @@
+.FilterTool_Container {
+    width: 20%;
+    height: 92.5%;
+    display: flex;
+    flex-direction: column;
+    
+    /* From https://css.glass */
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 5px 10px 5px 10px;
+    color: white;
+}
+
+.FilterTool_Container > h2 {
+    text-align: center;
+}
+
+.FilterTool_Schedule {
+    display: flex;
+    flex-direction: column;
+}
+
+.FilterTool_Schedule > h3 {
+    margin-bottom: 10px;
+}
+
+.schedule_radios {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.FilterTool_DatePosted {
+    display: flex;
+    flex-direction: column;
+    margin-top: 12px;
+}
+
+.FilterTool_DatePosted > h3 {
+    margin-bottom: 10px;
+}
+
+.FilterTool_SelectLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.FilterTool_Select {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: transparent;
+    color: white;
+    outline: none;
+    font-style: italic;
+}
+
+.FilterTool_Select:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Native dropdown menu styling (browser support varies) */
+.FilterTool_Select option {
+    background: rgba(20, 20, 20, 0.95);
+    color: white;
+}
