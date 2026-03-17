@@ -23,6 +23,7 @@ locations = [
     "Chicago, IL",
     "Denver, CO",
     "Los Angeles, CA",
+    "Portland, OR"
     "Remote"
 ]
 
