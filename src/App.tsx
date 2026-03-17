@@ -7,6 +7,7 @@ import "../src/styles/App.css"
 import FilterTool from "./components/FilterTool/FilterTool";
 import { postedAgeHours } from "./utils/postedAge";
 import Navigation from "./components/Navigation/Navigation";
+import SearchModal from "./components/SearchModal/SearchModal";
 
 function App() {
   const { data: jobs = [], isLoading } = useQuery<Job[]>({
@@ -18,6 +19,7 @@ function App() {
   const [location] = useState("All");
   const [roleFilter, setRoleFilter] = useState<"full-time" | "contractor" | "both">("both");
   const [postedMaxHours, setPostedMaxHours] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false)
 
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
@@ -45,7 +47,10 @@ function App() {
 
   return (
     <div className="Container">
-      <Navigation />
+      <Navigation 
+        showModal={showModal} 
+        setShowModal={setShowModal}
+      />
       <FilterTool
         roleFilter={roleFilter}
         onRoleFilterChange={setRoleFilter}
@@ -58,6 +63,12 @@ function App() {
       <div className="Footer">
         <span className="results_count">Results: {filteredJobs.length}</span>
       </div>
+      {showModal && 
+        <SearchModal 
+          showModal={showModal}
+          setShowModal={setShowModal}
+        />
+      }
     </div>
   )
 }
