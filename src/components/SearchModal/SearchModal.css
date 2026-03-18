@@ -158,3 +158,18 @@
     display: flex;
     flex-direction: column;
   }
+
+.job_search_error {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 107, 107, 0.45);
+    background: rgba(255, 107, 107, 0.12);
+    color: rgba(255, 240, 240, 0.98);
+    font-size: 0.95rem;
+}
+
+.job_search_button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

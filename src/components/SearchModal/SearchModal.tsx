@@ -28,6 +28,7 @@ export default function SearchModal(props: Props) {
     const [jobTitle, setJobTitle] = useState<string>("");
     const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
     const [loading, setLoading] = useState<boolean>(false)
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     function handleModal() {
         setShowModal(!showModal)
@@ -39,21 +40,36 @@ export default function SearchModal(props: Props) {
         );
     }
 
-    async function handleSubmit(e: React.SubmitEvent) {
+    const trimmedTitle = jobTitle.trim();
+    const isValid = trimmedTitle.length > 0 && selectedLocations.length > 0;
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setSubmitError(null);
+
+        if (!trimmedTitle) {
+          setSubmitError("Please enter a job title.");
+          return;
+        }
+
+        if (selectedLocations.length === 0) {
+          setSubmitError("Please select at least one location.");
+          return;
+        }
+
         setLoading(true);
-        
-        if (!jobTitle.trim() || selectedLocations.length === 0) return;
         try {
-          const jobs = await searchJobs({
-            job_title: jobTitle.trim(),
+          await searchJobs({
+            job_title: trimmedTitle,
             locations: selectedLocations,
           });
           onSearchComplete();
-          setLoading(false)
           setShowModal(false);
         } catch (err) {
           console.error("Search failed", err);
+          setSubmitError("Search failed. Please try again.");
+        } finally {
+          setLoading(false);
         }
       }
 
@@ -93,6 +109,12 @@ export default function SearchModal(props: Props) {
                     ))}
                   </div>
                 </div>
+
+                {submitError && (
+                  <div role="alert" className="job_search_error">
+                    {submitError}
+                  </div>
+                )}
                 {loading ?
                   <Oval
                     height={35}
@@ -106,7 +128,9 @@ export default function SearchModal(props: Props) {
                     wrapperStyle={{ alignSelf: 'center', marginTop: '10px' }}
                   />
                 :
-                  <button className="job_search_button" type="submit">Search</button>
+                  <button className="job_search_button" type="submit" disabled={!isValid}>
+                    Search
+                  </button>
                 }
               </fieldset>
             </form>
