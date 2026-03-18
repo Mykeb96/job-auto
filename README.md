@@ -1,73 +1,109 @@
-# React + TypeScript + Vite
+# Job Auto
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Full-stack job search app:
 
-Currently, two official plugins are available:
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: FastAPI + Uvicorn
+- **Job data source**: [SerpApi](https://serpapi.com/) Google Jobs engine
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Users can enter a **job title** and select one or more **locations**. The backend runs the scraper, writes results to `google_jobs_combined.json`, and the frontend displays the updated jobs list.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Prerequisites
 
-## Expanding the ESLint configuration
+- **Node.js** (for the frontend)
+- **Python 3.10+** (recommended) for the backend
+- A **SerpApi API key** (free/paid plans available)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 1) Get a SerpApi API key
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1. Create an account on SerpApi: `https://serpapi.com/`
+2. Copy your API key from your dashboard
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+This app expects the key in an environment variable named **`SERPAPI_API_KEY`**.
+
+---
+
+## 2) Backend setup (FastAPI)
+
+From the project root:
+
+```bash
+python -m pip install -r backend/requirements.txt
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Configure environment variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create `backend/.env`:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+SERPAPI_API_KEY=YOUR_SERPAPI_KEY_HERE
 ```
+
+Make sure `.env` is ignored by git (already recommended):
+
+```gitignore
+backend/.env
+.env
+```
+
+### Run the backend
+
+```bash
+cd backend
+python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+Backend endpoints:
+
+- **`GET /jobs`**: returns the jobs currently saved in `google_jobs_combined.json`
+- **`POST /search`**: accepts `{ "job_title": string, "locations": string[] }`, runs the scraper, returns the new jobs list
+
+---
+
+## 3) Frontend setup (React + Vite)
+
+From the project root:
+
+```bash
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:5173` and calls the backend on `http://localhost:8000`.
+
+---
+
+## Common issues
+
+### `uvicorn` not recognized
+
+Use:
+
+```bash
+python -m uvicorn api:app --reload --host 0.0.0.0 --port 8000
+```
+
+Or reinstall backend deps:
+
+```bash
+python -m pip install -r backend/requirements.txt
+```
+
+### Missing `SERPAPI_API_KEY`
+
+If you see an error like “Missing SERPAPI_API_KEY”, create `backend/.env` and add your key:
+
+```env
+SERPAPI_API_KEY=YOUR_SERPAPI_KEY_HERE
+```
+
+---
+
+## Notes
+
+- Scraping can take a little time depending on query/locations and pagination.
+- `google_jobs_combined.json` is written by `backend/scraper.py` and read by `backend/api.py`.
