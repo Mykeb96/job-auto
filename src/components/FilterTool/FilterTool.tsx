@@ -1,6 +1,6 @@
 import "./FilterTool.css"
 
-type RoleFilter = "full-time" | "contractor" | "both";
+type RoleFilter = "full-time" | "contractor" | "part-time" | "all";
 
 type Props = {
   roleFilter: RoleFilter;
@@ -37,6 +37,17 @@ export default function FilterTool({
             <input
               type="radio"
               name="role"
+              value="part-time"
+              checked={roleFilter === "part-time"}
+              onChange={() => onRoleFilterChange("part-time")}
+            />
+            Part-time
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="role"
               value="contractor"
               checked={roleFilter === "contractor"}
               onChange={() => onRoleFilterChange("contractor")}
@@ -48,11 +59,11 @@ export default function FilterTool({
             <input
               type="radio"
               name="role"
-              value="both"
-              checked={roleFilter === "both"}
-              onChange={() => onRoleFilterChange("both")}
+              value="all"
+              checked={roleFilter === "all"}
+              onChange={() => onRoleFilterChange("all")}
             />
-            Both
+            All
           </label>
         </div>
       </div>

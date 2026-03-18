@@ -20,7 +20,7 @@
     border: 1px solid rgba(255, 255, 255, 0.25);
     padding: 24px 32px;
     color: white;
-    height: 600px;
+    height: 610px;
     width: 350px;
     display: flex;
     flex-direction: column;
@@ -126,8 +126,6 @@
     border-radius: 999px;
 }
 
-/* Each location option */
-
 .search_location_option {
     display: flex;
     align-items: center;
@@ -145,3 +143,18 @@
 .search_location_option span {
     font-size: 0.95rem;
 }
+
+.job_search_button {
+    margin-top: 10px;
+    width: 100px;
+    align-self: center;
+}
+
+.SearchModal_Form fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+  }

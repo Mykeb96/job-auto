@@ -2,17 +2,26 @@ from serpapi import GoogleSearch
 import json
 import time
 import urllib.parse
+from typing import List
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
+API_KEY = os.getenv("SERPAPI_API_KEY")
+if not API_KEY:
+    raise RuntimeError("Missing SERPAPI_API_KEY (set it in .env or environment variables).")
 
+# Default job titles if none are provided from the frontend
 job_titles = [
     "frontend developer",
     "backend developer",
     "full stack developer",
     "software engineer",
-    "web developer"
+    "web developer",
 ]
 
+# Default locations if none are provided from the frontend
 locations = [
     "United States",
     "San Francisco, CA",
@@ -23,109 +32,129 @@ locations = [
     "Chicago, IL",
     "Denver, CO",
     "Los Angeles, CA",
-    "Portland, OR"
-    "Remote"
+    "Portland, OR",
+    "Remote",
 ]
 
-all_jobs = []
-seen_jobs = set()
 
-for title in job_titles:
-    for location in locations:
+def run_scraper(job_title: str, requested_locations: List[str]) -> List[dict]:
+    if job_title and job_title.strip():
+        titles_to_search = [job_title.strip()]
+    else:
+        titles_to_search = job_titles
 
-        print(f"\nSearching: {title} in {location}")
+    if requested_locations:
+        locations_to_search = requested_locations
+    else:
+        locations_to_search = locations
 
-        params = {
-            "engine": "google_jobs",
-            "q": title,
-            "location": location,
-            "hl": "en",
-            "api_key": API_KEY
-        }
+    all_jobs: List[dict] = []
+    seen_jobs = set()
 
-        next_page_token = None
+    for title in titles_to_search:
+        for location in locations_to_search:
+            print(f"\nSearching: {title} in {location}")
 
-        while True:
+            params = {
+                "engine": "google_jobs",
+                "q": title,
+                "location": location,
+                "hl": "en",
+                "api_key": API_KEY,
+            }
 
-            if next_page_token:
-                params["next_page_token"] = next_page_token
-            else:
-                params.pop("next_page_token", None)
+            next_page_token = None
 
-            search = GoogleSearch(params)
-            results = search.get_dict()
+            while True:
+                if next_page_token:
+                    params["next_page_token"] = next_page_token
+                else:
+                    params.pop("next_page_token", None)
 
-            jobs_results = results.get("jobs_results", [])
+                search = GoogleSearch(params)
+                results = search.get_dict()
 
-            if not jobs_results:
-                print("No jobs returned.")
-                break
+                jobs_results = results.get("jobs_results", [])
 
-            for job in jobs_results:
+                if not jobs_results:
+                    print("No jobs returned.")
+                    break
 
-                title_name = job.get("title")
-                company = job.get("company_name")
-                location_name = job.get("location")
+                for job in jobs_results:
+                    title_name = job.get("title")
+                    company = job.get("company_name")
+                    location_name = job.get("location")
 
-                job_key = f"{title_name}_{company}_{location_name}"
+                    job_key = f"{title_name}_{company}_{location_name}"
 
-                if job_key in seen_jobs:
-                    continue
+                    if job_key in seen_jobs:
+                        continue
 
-                seen_jobs.add(job_key)
+                    seen_jobs.add(job_key)
 
-                url = None
+                    url = None
 
-                # 1️⃣ Apply links (best)
-                if job.get("apply_options"):
-                    url = job["apply_options"][0].get("link")
+                    # Apply links (best)
+                    if job.get("apply_options"):
+                        url = job["apply_options"][0].get("link")
 
-                # 2️⃣ Direct link
-                elif job.get("link"):
-                    url = job.get("link")
+                    # Direct link
+                    elif job.get("link"):
+                        url = job.get("link")
 
-                # 3️⃣ Related links
-                elif job.get("related_links"):
-                    for link_obj in job.get("related_links"):
-                        if link_obj.get("link"):
-                            url = link_obj.get("link")
-                            break
+                    # Related links
+                    elif job.get("related_links"):
+                        for link_obj in job.get("related_links"):
+                            if link_obj.get("link"):
+                                url = link_obj.get("link")
+                                break
 
-                # 4️⃣ Google Jobs card using job_id
-                if not url and job.get("job_id"):
-                    job_id = job.get("job_id")
-                    query = urllib.parse.quote_plus(title_name)
-                    url = f"https://www.google.com/search?ibp=htl;jobs&q={query}#htivrt=jobs&htidocid={job_id}"
+                    # Google Jobs card using job_id
+                    if not url and job.get("job_id"):
+                        job_id = job.get("job_id")
+                        query = urllib.parse.quote_plus(title_name or "")
+                        url = (
+                            "https://www.google.com/search?ibp=htl;jobs"
+                            f"&q={query}#htivrt=jobs&htidocid={job_id}"
+                        )
 
-                # 5️⃣ Fallback search
-                if not url:
-                    url = f"https://www.google.com/search?q={urllib.parse.quote_plus(title_name)}+{urllib.parse.quote_plus(company)}"
+                    # Fallback search
+                    if not url:
+                        url = "https://www.google.com/search?q=" + urllib.parse.quote_plus(
+                            f"{title_name or ''} {company or ''}"
+                        )
 
-                job_data = {
-                    "title": title_name,
-                    "company": company,
-                    "location": location_name,
-                    "via": job.get("via"),
-                    "description": job.get("description"),
-                    "posted": job.get("detected_extensions", {}).get("posted_at"),
-                    "schedule": job.get("detected_extensions", {}).get("schedule_type"),
-                    "url": url
-                }
+                    job_data = {
+                        "title": title_name,
+                        "company": company,
+                        "location": location_name,
+                        "via": job.get("via"),
+                        "description": job.get("description"),
+                        "posted": job.get("detected_extensions", {}).get("posted_at"),
+                        "schedule": job.get("detected_extensions", {}).get("schedule_type"),
+                        "url": url,
+                    }
 
-                all_jobs.append(job_data)
+                    all_jobs.append(job_data)
 
-            print(f"Collected jobs so far: {len(all_jobs)}")
+                print(f"Collected jobs so far: {len(all_jobs)}")
 
-            next_page_token = results.get("search_metadata", {}).get("next_page_token")
+                next_page_token = results.get("search_metadata", {}).get("next_page_token")
 
-            if not next_page_token:
-                break
+                if not next_page_token:
+                    break
 
-            time.sleep(1)
+                time.sleep(1)
 
-with open("google_jobs_combined.json", "w", encoding="utf-8") as f:
-    json.dump(all_jobs, f, indent=2)
+    with open("google_jobs_combined.json", "w", encoding="utf-8") as f:
+        json.dump(all_jobs, f, indent=2)
 
-print("\nFinished!")
-print(f"Total jobs saved: {len(all_jobs)}")
-print("File saved: google_jobs_combined.json")
+    print("\nFinished!")
+    print(f"Total jobs saved: {len(all_jobs)}")
+    print("File saved: google_jobs_combined.json")
+
+    return all_jobs
+
+
+if __name__ == "__main__":
+    run_scraper("", [])

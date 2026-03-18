@@ -10,14 +10,18 @@ import Navigation from "./components/Navigation/Navigation";
 import SearchModal from "./components/SearchModal/SearchModal";
 
 function App() {
-  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+  const {
+    data: jobs = [],
+    isLoading,
+    refetch,
+  } = useQuery<Job[]>({
     queryKey: ["jobs"],
     queryFn: fetchJobs,
   });
 
   const [search] = useState("");
   const [location] = useState("All");
-  const [roleFilter, setRoleFilter] = useState<"full-time" | "contractor" | "both">("both");
+  const [roleFilter, setRoleFilter] = useState<"full-time" | "contractor" | "part-time" | "all">("all");
   const [postedMaxHours, setPostedMaxHours] = useState<number | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false)
 
@@ -28,8 +32,9 @@ function App() {
 
       const schedule = (job.schedule ?? "").toLowerCase();
       const matchesRole =
-        roleFilter === "both" ||
+        roleFilter === "all" ||
         (roleFilter === "full-time" && schedule.includes("full")) ||
+        (roleFilter === "part-time" && schedule.includes("part")) ||
         (roleFilter === "contractor" && (schedule.includes("contract") || schedule.includes("contractor")));
 
       const matchesPosted = (() => {
@@ -67,6 +72,7 @@ function App() {
         <SearchModal 
           showModal={showModal}
           setShowModal={setShowModal}
+          onSearchComplete={refetch}
         />
       }
     </div>

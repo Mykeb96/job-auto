@@ -6,7 +6,7 @@ interface Props {
 }
 
 export default function JobCard({ job }: Props) {
-  console.log(job)
+
   return (
     <div className="JobCard_Container">
       <h2 className="JobCard_Title">{job.title}</h2>
